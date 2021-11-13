@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="CSS/styles.css">
+    <title>to do list page </title>
+</head>
+<body>
+
+    <div class="box" id="heading">
+        <h1><%=listTitle%></h1>
+    </div>
+    <div class="box">
+        <% for (var n of taskList) { %>
+            <div class="item">
+                <input type="checkbox">
+                <p class="item"><%= n %></p>
+            </div>
+        <% } %>
+        <form action="/" method="post" class="item">
+            <input type="text" name="task" placeholder="inter new task" autocomplete="off">
+            <button type="submit" name="button" value="<%=listTitle%>">+</button>
+        </form>
+    </div>
+    <%- body %>
+</body>
+</html>
