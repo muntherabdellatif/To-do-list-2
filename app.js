@@ -8,8 +8,10 @@ let expressLayouts =require("express-ejs-layouts");
 const app =express();
 let taskList=[];
 let workTaskList=[];
+let lastDayTitle="";
 
 mongoose.connect("mongodb://localhost:27017/ToDoListDB",{useNewUrlParser:true});
+mongoose.connect("mongodb://localhost:27017/LastDay",{useNewUrlParser:true});
 
 const taskListSchema = new mongoose.Schema({
     name:{
@@ -18,6 +20,14 @@ const taskListSchema = new mongoose.Schema({
     },
 });
 const TaskList =mongoose.model("tasklist",taskListSchema);
+
+const lastDaySchema = new mongoose.Schema({
+    date:{
+        type:String ,
+        required : [true] 
+    },
+});
+const LastDay =mongoose.model("lastday",lastDaySchema);
 
 // default tasks
 const task1 = new TaskList ({
@@ -40,7 +50,17 @@ app.set("views",path.join(__dirname,"views")); // set the file include ejs
 app.set("view engine","ejs");
 
 app.get("/",function (req,res) {
-
+    // update last day value from data base 
+    LastDay.find(function (error,lastday) {
+        if (error){
+            console.log(error);
+        }else {
+            if (lastday.length>0){
+                lastDayTitle=lastday[0].date;
+            }
+        }
+    });
+    //insert default tasks and taking data from data base
     TaskList.find(function (error,tasks) {
         if (error){
             console.log(error);
@@ -68,7 +88,33 @@ app.get("/",function (req,res) {
     let weekDays =["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
     let day=weekDays[today.getDay()];
     let listTitle= `${day} To do list (${dayInMonth}/${month}/${year})`;
-
+    if (lastDayTitle==="") { // if this is the first day you use 
+        // first time you use data base (date )
+        const NewDay= new LastDay ({
+            date: listTitle
+        });
+        console.log("done");
+        lastDayTitle=listTitle;
+        NewDay.save();
+    }else {
+        if (lastDayTitle !== listTitle) { // this is a new day
+            // clear all tasks in data base 
+            TaskList.deleteMany({},function(er){
+                if(er){
+                    console.log(er);
+                }
+            })
+            // update last date title 
+            LastDay.updateOne({date:lastDayTitle},{date:listTitle},function(er){
+                if(er){
+                    console.log(er);
+                }else {
+                    console.log("done");
+                }
+            });
+            lastDayTitle = listTitle ;
+        }
+    }
     // render
     res.render("index",{
         taskList:taskList ,
@@ -83,6 +129,10 @@ app.post("/",function(req,res){
         res.redirect("/work");
     }else {
         taskList.push(task);
+        const newTask = new TaskList ({
+            name: task
+        });
+        newTask.save();
         res.redirect("/");
     }
 });
