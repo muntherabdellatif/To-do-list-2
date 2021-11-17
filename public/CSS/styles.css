@@ -23,14 +23,16 @@ h1 {
   text-align: center;
 }
 
-.item {
+.item,
+.page {
   min-height: 35px;
   display: flex;
   align-items: center;
   border-bottom: 1px solid #f1f1f1;
 }
 
-.item:last-child {
+.item:last-child,
+.page:last-child {
   border-bottom: 0;
 }
 
@@ -92,4 +94,29 @@ footer {
   color: white;
   color: rgba(0, 0, 0, 0.5);
   text-align: center;
+}
+
+.pages_box {
+  overflow: hidden;
+  position: absolute;
+  background: white;
+  top: 160px;
+  right: 50px;
+  border-radius: 5px;
+  -webkit-border-radius: 5;
+  -moz-border-radius: 5;
+  -ms-border-radius: 5;
+  -o-border-radius: 5;
+}
+.pages_box .page {
+  cursor: pointer;
+}
+.pages_box .page.active {
+  background-color: #a683e3;
+}
+.pages_box .page.active .item {
+  color: #fff;
+}
+.pages_box .item input {
+  width: 200px;
 }
