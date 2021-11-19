@@ -16,11 +16,11 @@
         <% for (var n of currentPageTasks) { %>
             <div class="item">
                 <input type="checkbox">
-                <p class="item"><%= n %></p>
+                <p class="item"><%= n.taskName %></p>
             </div>
         <% } %>
         <form action="/addtask" method="post" class="item">
-            <input type="text" name="task" placeholder="inter new task" autocomplete="off">
+            <input type="text" name="task" placeholder="enter new task" autocomplete="off">
             <button type="submit" name="button" value="<%=currentpageTitle%>">+</button>
         </form>
     </div>
@@ -39,7 +39,7 @@
             <% i++; %>
         <% } %>
         <form action="/addPage" method="post" class="item">
-            <input type="text" name="page" placeholder="inter new page" autocomplete="off">
+            <input type="text" name="page" placeholder="enter new page" autocomplete="off">
             <button type="submit" name="button" value="<%=currentpageTitle%>">+</button>
         </form>
     </div>
