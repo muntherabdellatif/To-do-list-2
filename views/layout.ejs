@@ -10,20 +10,42 @@
 <body>
 
     <div class="box" id="heading">
-        <h1><%=listTitle%></h1>
+        <h1><%=currentpageTitle%></h1>
     </div>
     <div class="box">
-        <% for (var n of taskList) { %>
+        <% for (var n of currentPageTasks) { %>
             <div class="item">
-                <input type="checkbox">
-                <p class="item"><%= n %></p>
+                <form action="/changeStatus" method="post">
+                    <input type="checkbox" onChange="this.form.submit()" >
+                    <p class="item "><%= n.taskName %> </p>
+                </form>
             </div>
         <% } %>
-        <form action="/" method="post" class="item">
-            <input type="text" name="task" placeholder="inter new task" autocomplete="off">
-            <button type="submit" name="button" value="<%=listTitle%>">+</button>
+        <form action="/addtask" method="post" class="item">
+            <input type="text" name="task" placeholder="enter new task" autocomplete="off">
+            <button type="submit" name="button" value="<%=currentpageTitle%>">+</button>
+        </form>
+    </div>
+    <div class="pages_box">
+        <% let i=0 ; %>
+        <% for (var n of pagesTitles) { %>
+            <% if (currentpageTitle===n) { %>
+                <div class="page active" data-num="<%=i%>">
+                    <p class="item" data-num="<%=i%>"><%= n %></p>
+                </div>
+            <%}else {%>
+            <div class="page" data-num="<%=i%>">
+                <p class="item" data-num="<%=i%>"><%= n %></p>
+            </div>
+            <%}%>
+            <% i++; %>
+        <% } %>
+        <form action="/addPage" method="post" class="item">
+            <input type="text" name="page" placeholder="enter new page" autocomplete="off">
+            <button type="submit" name="button" value="<%=currentpageTitle%>">+</button>
         </form>
     </div>
     <%- body %>
+    <script src="JS/index.js"></script>
 </body>
 </html>

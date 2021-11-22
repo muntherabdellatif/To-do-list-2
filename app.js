@@ -4,42 +4,45 @@ let bodyParser =require("body-parser");
 let cors =require("cors");
 let path =require("path");
 let expressLayouts =require("express-ejs-layouts");
+mongoose.connect("mongodb://localhost:27017/ToDoListDB",{useNewUrlParser:true});
+
+const PageTasksSchema = new mongoose.Schema({
+    taskName : String 
+});
+const pageTasks =mongoose.model("pageTasks",PageTasksSchema);
+
+const PagesListSchema = new mongoose.Schema({
+    _id : Number ,
+    name:String,
+    tasksList: [{type:PageTasksSchema}]
+});
+const PagesList =mongoose.model("PagesList",PagesListSchema);
 
 const app =express();
-let taskList=[];
-let workTaskList=[];
-let lastDayTitle="";
+let pagesTitles=[];
+let currentPage=0;
 
-mongoose.connect("mongodb://localhost:27017/ToDoListDB",{useNewUrlParser:true});
-mongoose.connect("mongodb://localhost:27017/LastDay",{useNewUrlParser:true});
+let pages = [];
 
-const taskListSchema = new mongoose.Schema({
-    name:{
-        type:String ,
-        required : [true] 
-    },
+//find element in data base and push it in pages array 
+PagesList.find(function (error,ToDoListData) {
+    if (error){
+        console.log(error);
+    }else {
+        if (ToDoListData){
+            ToDoListData.forEach((page)=>{
+                console.log(page.name);
+                console.log(page.tasksList);
+                const newPage = {
+                    pageTitle :page.name ,
+                    tasks :page.tasksList
+                }
+                pages.push(newPage);
+                pagesTitles.push(page.name );
+            })
+        }
+    }
 });
-const TaskList =mongoose.model("tasklist",taskListSchema);
-
-const lastDaySchema = new mongoose.Schema({
-    date:{
-        type:String ,
-        required : [true] 
-    },
-});
-const LastDay =mongoose.model("lastday",lastDaySchema);
-
-// default tasks
-const task1 = new TaskList ({
-    name: "Steel sport"
-});
-const task2 = new TaskList ({
-    name: "Learn something new"
-});
-const task3 = new TaskList ({
-    name: "Spend some time with the family"
-});
-let defaultTasks =[task1,task2,task3];
 
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(cors());
@@ -50,101 +53,73 @@ app.set("views",path.join(__dirname,"views")); // set the file include ejs
 app.set("view engine","ejs");
 
 app.get("/",function (req,res) {
-    // update last day value from data base 
-    LastDay.find(function (error,lastday) {
-        if (error){
-            console.log(error);
-        }else {
-            if (lastday.length>0){
-                lastDayTitle=lastday[0].date;
-            }
-        }
-    });
-    //insert default tasks and taking data from data base
-    TaskList.find(function (error,tasks) {
-        if (error){
-            console.log(error);
-        }else {
-            if (tasks.length===0){
-                TaskList.insertMany(defaultTasks,function (err) {
-                    if (err){console.log(err);}
-                });
-            }else {
-                taskList=[];
-                tasks.forEach((e)=>{
-                    taskList.push(e.name);
-                });
-            }
-        }
-    });
-    if (taskList.length===0){
-        res.redirect("/");
+    if (pages.length===0){
+        res.render("index",{
+            currentpageTitle:"welcome in To Do List",
+            currentPageTasks:[],
+            pagesTitles:[] 
+        });   // read ejs file
+    }else{
+        res.render("index",{
+            currentpageTitle:pages[currentPage].pageTitle,
+            currentPageTasks:pages[currentPage].tasks,
+            pagesTitles:pagesTitles 
+        });   // read ejs file
     }
-    // time data
-    let today =new Date();
-    let dayInMonth =today.getDate();
-    let month =today.getMonth()+1;
-    let year =today.getFullYear();
-    let weekDays =["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-    let day=weekDays[today.getDay()];
-    let listTitle= `${day} To do list (${dayInMonth}/${month}/${year})`;
-    if (lastDayTitle==="") { // if this is the first day you use 
-        // first time you use data base (date )
-        const NewDay= new LastDay ({
-            date: listTitle
-        });
-        console.log("done");
-        lastDayTitle=listTitle;
-        NewDay.save();
-    }else {
-        if (lastDayTitle !== listTitle) { // this is a new day
-            // clear all tasks in data base 
-            TaskList.deleteMany({},function(er){
-                if(er){
-                    console.log(er);
-                }
-            })
-            // update last date title 
-            LastDay.updateOne({date:lastDayTitle},{date:listTitle},function(er){
-                if(er){
-                    console.log(er);
-                }else {
-                    console.log("done");
-                }
-            });
-            lastDayTitle = listTitle ;
-        }
-    }
-    // render
-    res.render("index",{
-        taskList:taskList ,
-        listTitle:listTitle
-    });   // read ejs file
 });
+app.post("/addtask",function(req,res){
+    let addToPage = req.body.button;
+    for(var n of pages){
+        if(n.pageTitle===addToPage){
+            n.tasks.push({taskName:req.body.task});
+        }
+    }
+
+    // adding tasks to data base 
+    const NewTask = new pageTasks ({
+        taskName : req.body.task ,
+    });
+    NewTask.save();
+
+    // adding task to page in data base 
+    PagesList.findOneAndUpdate(
+       { _id: currentPage}, 
+       { $push: { tasksList: [ {taskName: req.body.task} ] } },
+      function (error, success) {
+            if (error) {
+                console.log(error);
+            } else {
+            }
+        });
+    res.redirect("/");
+});
+app.post("/addPage",function(req,res){
+    let newPage={
+            pageTitle:req.body.page,
+            tasks:[]
+        };
+    pages.push(newPage);
+    pagesTitles.push(req.body.page);
+
+    // adding page to data base 
+    const newPageDB = new PagesList ({
+        _id : pages.length-1 ,
+        name:req.body.page ,
+    }) ;
+    newPageDB.save();
+
+    // change current page to new page
+    currentPage=pages.length-1;
+
+    res.redirect("/");
+});
+app.get(`/changePage/:postID`,function (req,res) {
+    currentPage = req.params.postID;
+    res.redirect("/");
+  });
 app.post("/",function(req,res){
-    console.log(req.body.button);
-    let task =req.body.task;
-    if (req.body.button===" Work To do list"){
-        workTaskList.push(task);
-        res.redirect("/work");
-    }else {
-        taskList.push(task);
-        const newTask = new TaskList ({
-            name: task
-        });
-        newTask.save();
-        res.redirect("/");
-    }
-});
-app.get("/work",function(req,res){
-    res.render("index",{
-        taskList:workTaskList ,
-        listTitle:" Work To do list"
-    });   // read ejs file
-});
-app.post("/work",function(req,res){
-    
+
 });
 app.listen(process.env.PORT || 3000,function () {
     console.log("running");  
-})
+});
