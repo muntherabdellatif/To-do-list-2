@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--fontawesome CDN  -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" integrity="sha384-DyZ88mC6Up2uqS4h/KRgHuoeGwBcD4Ng9SiP4dIRy0EXTlnuz47vAwmeGwVChigm" crossorigin="anonymous">
     <link rel="stylesheet" href="CSS/styles.css">
     <title>to do list page </title>
 </head>
@@ -16,7 +18,7 @@
         <% for (var n of currentPageTasks) { %>
             <div class="item">
                 <form action="/changeStatus" method="post">
-                    <input type="checkbox" onChange="this.form.submit()" >
+                    <input type="checkbox" name="checkbox" value="<%= n.taskName %>" onChange="this.form.submit()" >
                     <p class="item "><%= n.taskName %> </p>
                 </form>
             </div>
@@ -32,11 +34,13 @@
             <% if (currentpageTitle===n) { %>
                 <div class="page active" data-num="<%=i%>">
                     <p class="item" data-num="<%=i%>"><%= n %></p>
+                    <i class="far fa-times-circle"  data-name="<%=n %>"></i>
                 </div>
             <%}else {%>
-            <div class="page" data-num="<%=i%>">
-                <p class="item" data-num="<%=i%>"><%= n %></p>
-            </div>
+                <div class="page" data-num="<%=i%>">
+                    <p class="item" data-num="<%=i%>"><%= n %></p>
+                    <i class="far fa-times-circle" data-name="<%=n%>"></i>
+                </div>
             <%}%>
             <% i++; %>
         <% } %>

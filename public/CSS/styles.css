@@ -46,12 +46,14 @@ input[type="checkbox"] {
 }
 
 p {
-  display: inline;
   margin: 0;
   padding: 20px;
   font-size: 20px;
   font-weight: 200;
   color: #00204a;
+}
+.box .item .item {
+  display: inline;
 }
 
 form {
@@ -120,4 +122,11 @@ footer {
 }
 .pages_box .item input {
   width: 200px;
+}
+.page i {
+  cursor: pointer;
+  color: red;
+  font-size: 25px;
+  position: absolute;
+  right: 20px;
 }

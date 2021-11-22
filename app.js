@@ -20,6 +20,7 @@ const PagesList =mongoose.model("PagesList",PagesListSchema);
 const app =express();
 let pagesTitles=[];
 let currentPage=0;
+
 let pages = [];
 
 //find element in data base and push it in pages array 
@@ -41,7 +42,6 @@ PagesList.find(function (error,ToDoListData) {
         }
     }
 });
-
 
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(cors());
@@ -73,8 +73,6 @@ app.post("/addtask",function(req,res){
             n.tasks.push({taskName:req.body.task});
         }
     }
-
-    // adding tasks to data base 
     const NewTask = new pageTasks ({
         taskName : req.body.task ,
     });
@@ -93,25 +91,87 @@ app.post("/addtask",function(req,res){
     res.redirect("/");
 });
 app.post("/addPage",function(req,res){
-    let newPage={
+    if (req.body.page!==""){
+        let newPage={
             pageTitle:req.body.page,
             tasks:[]
         };
-    pages.push(newPage);
-    pagesTitles.push(req.body.page);
+        pages.push(newPage);
+        pagesTitles.push(req.body.page);
 
-    // adding page to data base 
-    const newPageDB = new PagesList ({
-        name:req.body.page ,
-    }) ;
-    newPageDB.save();
+        // adding page to data base 
+        const newPageDB = new PagesList ({
+            // _id : pages.length-1 ,
+            name:req.body.page ,
+        }) ;
+        newPageDB.save();
 
-    // change current page to new page
-    currentPage=pages.length-1;
+        // change current page to new page
+        currentPage=pages.length-1;
+    }
     res.redirect("/");
 });
+app.post("/changeStatus",function(req,res){
+    // delete from tasks 
+    pageTasks.findOneAndDelete(
+        {taskName:req.body.checkbox} ,
+        function (error, success) {
+            if (error) {
+                console.log(error);
+            } else {
+            }
+        }
+    );
+    // delete from page
+    console.log(pages[currentPage].pageTitle);
+    console.log(req.body.checkbox);
+    PagesList.findOneAndUpdate(
+        {name:pages[currentPage].pageTitle} ,
+        {$pull:{tasksList:{taskName:req.body.checkbox}}} ,
+        function (error,success) {
+            if (error) {
+                console.log(error);
+            } else {
+            }
+        }
+    );
+    // delete from pages array
+    for (let i=0 ;i<pages[currentPage].tasks.length;i++){
+        if (pages[currentPage].tasks[i].taskName === req.body.checkbox) {
+            pages[currentPage].tasks.splice(i,1);
+        }
+    }
+    // users[userID].projects.splice(toDeleteProject,1);
+
+    res.redirect("/");
+})
 app.get(`/changePage/:postID`,function (req,res) {
     currentPage = req.params.postID;
+    res.redirect("/");
+  });
+app.get(`/deletePage/:postID`,function (req,res) {
+    console.log(req.params.postID);
+    // delete from data base
+    PagesList.findOneAndDelete(
+        {name:req.params.postID} ,
+        function (error, success) {
+            if (error) {
+                console.log(error);
+            } else {
+            }
+        }
+    );
+    // delete from pages array
+    let counter =0;
+    pages.forEach((p)=>{
+        if (p.pageTitle===req.params.postID) {
+            pages.splice(counter,1);
+            pagesTitles.splice(counter,1);
+        }
+        counter++;
+    });
+    console.log(pages);
+    currentPage=pages.length-1;
     res.redirect("/");
   });
 app.post("/",function(req,res){

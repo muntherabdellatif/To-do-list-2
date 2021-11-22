@@ -11,3 +11,13 @@ pageTitles.forEach ((PT)=>{
         window.location.pathname=(`/changePage/${pageNumber}`);
     });
 });
+// delete page 
+const deleteBtn =document.querySelectorAll (".page i") ;
+deleteBtn.forEach ((btn)=>{
+    btn.addEventListener("click", function(){
+        let deletedPageName =this.dataset.name;
+        if (deletedPageName!==" "){
+            window.location.pathname=(`/deletePage/${deletedPageName}`);
+        }
+    });
+});
