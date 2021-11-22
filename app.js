@@ -12,7 +12,6 @@ const PageTasksSchema = new mongoose.Schema({
 const pageTasks =mongoose.model("pageTasks",PageTasksSchema);
 
 const PagesListSchema = new mongoose.Schema({
-    _id : Number ,
     name:String,
     tasksList: [{type:PageTasksSchema}]
 });
@@ -21,7 +20,6 @@ const PagesList =mongoose.model("PagesList",PagesListSchema);
 const app =express();
 let pagesTitles=[];
 let currentPage=0;
-
 let pages = [];
 
 //find element in data base and push it in pages array 
@@ -43,6 +41,7 @@ PagesList.find(function (error,ToDoListData) {
         }
     }
 });
+
 
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(cors());
@@ -83,7 +82,7 @@ app.post("/addtask",function(req,res){
 
     // adding task to page in data base 
     PagesList.findOneAndUpdate(
-       { _id: currentPage}, 
+       { name: pages[currentPage].pageTitle}, 
        { $push: { tasksList: [ {taskName: req.body.task} ] } },
       function (error, success) {
             if (error) {
@@ -103,14 +102,12 @@ app.post("/addPage",function(req,res){
 
     // adding page to data base 
     const newPageDB = new PagesList ({
-        _id : pages.length-1 ,
         name:req.body.page ,
     }) ;
     newPageDB.save();
 
     // change current page to new page
     currentPage=pages.length-1;
-
     res.redirect("/");
 });
 app.get(`/changePage/:postID`,function (req,res) {
