@@ -15,8 +15,10 @@
     <div class="box">
         <% for (var n of currentPageTasks) { %>
             <div class="item">
-                <input type="checkbox">
-                <p class="item"><%= n.taskName %></p>
+                <form action="/changeStatus" method="post">
+                    <input type="checkbox" onChange="this.form.submit()" >
+                    <p class="item "><%= n.taskName %> </p>
+                </form>
             </div>
         <% } %>
         <form action="/addtask" method="post" class="item">

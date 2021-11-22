@@ -77,7 +77,7 @@ app.post("/addtask",function(req,res){
 
     // adding tasks to data base 
     const NewTask = new pageTasks ({
-        taskName : req.body.task 
+        taskName : req.body.task ,
     });
     NewTask.save();
 

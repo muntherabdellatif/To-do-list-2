@@ -46,6 +46,7 @@ input[type="checkbox"] {
 }
 
 p {
+  display: inline;
   margin: 0;
   padding: 20px;
   font-size: 20px;
